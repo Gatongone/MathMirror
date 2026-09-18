@@ -1,9 +1,10 @@
 {
-	"id": "mirror",
+	"id": "math-mirror",
 	"name": "Math Mirror",
-	"version": "0.1.0",
-	"minAppVersion": "1.4.0",
-	"description": "Mirror LaTeX formulas: \\mirrorh{...} flips a formula horizontally (left/right) and \\mirrorv{...} flips it vertically (up/down).",
+	"version": "1.0.0",
+	"minAppVersion": "1.13.7",
+	"description": "Flip LaTeX formulas in your notes horizontally, vertically, or both, while keeping them real typeset math that stays selectable and searchable.",
 	"author": "Gatongone",
+	"authorUrl": "https://github.com/Gatongone",
 	"isDesktopOnly": false
 }

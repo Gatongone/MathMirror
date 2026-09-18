@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-math-mirror",
-	"version": "0.1.0",
-	"description": "Mirror LaTeX formulas in Obsidian: \\mirrorh{...} flips horizontally, \\mirrorv{...} flips vertically.",
+	"version": "1.0.0",
+	"description": "Flip LaTeX formulas in Obsidian horizontally, vertically, or both.",
 	"main": "main.js",
 	"private": true,
 	"scripts": {

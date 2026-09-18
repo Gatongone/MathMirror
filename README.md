@@ -16,21 +16,39 @@ The reflection is a CSS transform (`scaleX(-1)` / `scaleY(-1)`) applied to the
 **real MathJax output**, not an image and not reordered characters, so mirrored
 formulas stay selectable, searchable, theme-aware and vector-sharp when printed.
 
+Requires Obsidian 1.13.7 or later (that is the version the MathJax internals it
+relies on were verified against). Works on desktop and mobile.
+
 ## Install
+
+Install **Math Mirror** from the community plugin directory: *Settings → Community
+plugins → Browse*, search for "Math Mirror", then *Install* and *Enable*.
+
+Before the directory listing is live, either use [BRAT](https://github.com/TfTHacker/obsidian42-brat)
+with the repository `Gatongone/MathMirror`, or build it yourself:
 
 ```powershell
 npm install
 npm run build
-npm run deploy      # copies into C:\Projects\Obsidian\Notes\.obsidian\plugins\mirror
+npm run deploy      # copies into C:\Projects\Obsidian\Notes\.obsidian\plugins\math-mirror
 ```
 
 Use `$env:OBSIDIAN_VAULT = "D:\MyVault"; npm run deploy` for another vault, or copy
-`manifest.json`, `main.js` and `styles.css` into `<vault>/.obsidian/plugins/mirror/`
-yourself, then enable **Math Mirror** in Settings → Community plugins.
+`manifest.json`, `main.js` and `styles.css` into
+`<vault>/.obsidian/plugins/math-mirror/` yourself, then enable **Math Mirror** in
+Settings → Community plugins. The folder name has to match the plugin id,
+`math-mirror`.
 
 > Math that is already on screen when the plugin is enabled is not re-rendered by
 > Obsidian (post processors only run while rendering). Reopen the note or toggle
 > between editing and reading mode.
+
+## Privacy
+
+Math Mirror does not use the network, does not collect telemetry, does not show
+ads, and does not require an account. It only reads the notes you have open, works
+with the MathJax build Obsidian already ships, and writes nothing outside the
+rendered math in the DOM.
 
 ## Principle
 
@@ -103,7 +121,25 @@ Mirror in Live Preview · Debug logging.
 
 `npm run dev` (watch) · `npm run build` (type check + production bundle) ·
 `npm test` (62 unit and integration tests, including a real CodeMirror 6 editor in
-jsdom).
+jsdom) · `npm run deploy` (copy the built plugin into a vault).
+
+`main.js` and `styles.css` are build artifacts and are not committed; they are
+attached to each release.
+
+## Releases
+
+`.github/workflows/release.yml` builds and tests the plugin on every tag, then
+opens a draft release with the three files Obsidian downloads. Push a tag that
+matches `manifest.json`:
+
+```powershell
+git tag -a 1.0.0 -m "1.0.0"
+git push origin 1.0.0
+```
+
+Review the draft release, add the notes from [`CHANGELOG.md`](CHANGELOG.md) and
+publish it. See [`docs/submission.md`](docs/submission.md) for the community
+directory checklist.
 
 ## License
 

@@ -1,0 +1,67 @@
+name: Release
+
+# Pushing a tag whose name matches the `version` in manifest.json builds the
+# plugin, runs the test suite and opens a *draft* release with the three files
+# Obsidian downloads: main.js, manifest.json and styles.css.
+#
+# Before the first run, set Settings -> Actions -> General -> Workflow
+# permissions to "Read and write permissions", otherwise `gh release create`
+# cannot create the release.
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check that the tag matches manifest.json
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version=$(node -p "require('./manifest.json').version")
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag $tag does not match manifest.json version $version"
+            exit 1
+          fi
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      # Signed build provenance for the released files. Delete this step if the
+      # repository cannot use attestations.
+      - name: Attest build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Create draft release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          gh release create "$tag" \
+            --title="$tag" \
+            --draft \
+            --generate-notes \
+            main.js manifest.json styles.css
