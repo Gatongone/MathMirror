@@ -65,30 +65,44 @@ in two very different ways:
   re-renders the rewritten TeX with `renderMath`, swaps the MathJax node and marks
   the widget. Obsidian's widget stays in charge of layout, click-to-edit and the
   block edit button.
+* **Anything else that renders the macro itself** — LaTeX Suite's math popup
+  preview, another plugin's preview, or reading view math that Obsidian typeset
+  before the post processor saw it. There the macro reaches MathJax, which does not
+  know it, and MathJax draws its name in red. A DOM observer notices that error
+  rendering, decodes the macro name from the glyph elements, deletes the red text
+  and puts the mirror class on the group that follows it - the argument, including
+  when a script is attached to it (`$\mirrorh{\mathcal{f}}_x$` mirrors the `f` and
+  leaves the subscript alone). Genuinely undefined macros, and a macro written
+  without braces, keep their red error.
 
 Everything is verified against Obsidian 1.13.7 (MathJax 3.2.2); the evidence is
 collected in [`docs/obsidian-math-internals.md`](docs/obsidian-math-internals.md).
 
 ## Settings
 
-Mirror in Live Preview · Flip animation duration · Debug logging.
+Mirror in Live Preview · Debug logging.
 
 ## Limitations
 
 * Only `\mirrorh`, `\mirrorv`, `\mirrorhv` (and `\mirrorvh`) are recognised, case
   sensitively.
-* Braces must balance: `$\mirrorh{x$` cannot be parsed, so the formula is left
-  alone (with a console message when debug logging is on).
-* In reading view, math that was already typeset before the plugin saw it is skipped,
-  because MathJax's output keeps no copy of the TeX.
+* Braces must balance: `$\mirrorh{x$` cannot be parsed, so the formula keeps
+  MathJax's red error rendering (with a console message when debug logging is on).
+* Reading view math that was already typeset before the plugin saw it, and math
+  rendered by another plugin, is repaired after the fact rather than rewritten
+  first: the red macro name disappears and the reflection is applied a moment
+  later, in the same frame.
 * Partial reflections use the class names `mjx-mirror-h`, `mjx-mirror-v` and
   `mjx-mirror-hv`; a `\class{mjx-mirror-...}` written by hand is treated as a mirror
   request as well.
+* The rescue pass understands MathJax's undefined-macro rendering as Obsidian
+  1.13.7 (MathJax 3.2.2) produces it. If a future version changes that markup, the
+  rescue pass stops working - all other paths are unaffected.
 
 ## Development
 
 `npm run dev` (watch) · `npm run build` (type check + production bundle) ·
-`npm test` (45 unit and integration tests, including a real CodeMirror 6 editor in
+`npm test` (62 unit and integration tests, including a real CodeMirror 6 editor in
 jsdom).
 
 ## License

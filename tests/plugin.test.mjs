@@ -28,9 +28,33 @@ globalThis.getComputedStyle = window.getComputedStyle.bind(window);
 globalThis.requestAnimationFrame = window.requestAnimationFrame.bind(window);
 globalThis.cancelAnimationFrame = window.cancelAnimationFrame.bind(window);
 
+// Obsidian's DOM helpers, which the settings tab uses.
+window.HTMLElement.prototype.empty = function () {
+	while (this.firstChild) this.removeChild(this.firstChild);
+	return this;
+};
+window.HTMLElement.prototype.createDiv = function (options) {
+	const element = this.ownerDocument.createElement("div");
+	if (options?.cls) element.className = options.cls;
+	this.appendChild(element);
+	return element;
+};
+window.HTMLElement.prototype.createEl = function (tag, options) {
+	const element = this.ownerDocument.createElement(tag);
+	if (typeof options === "string") element.className = options;
+	else if (options) {
+		if (options.cls) element.className = options.cls;
+		if (options.text) element.textContent = options.text;
+	}
+	this.appendChild(element);
+	return element;
+};
+
 /* ---------------------------------------------------------------- obsidian mock */
 
 const registrations = { postProcessors: [], editorExtensions: [], settingsTabs: [], cleanups: [] };
+/** Returned by the plugin's `loadData`, so tests can seed a data.json. */
+let storedSettings = null;
 
 class Plugin {
 	constructor(app, manifest) {
@@ -50,7 +74,7 @@ class Plugin {
 		registrations.cleanups.push(cleanup);
 	}
 	async loadData() {
-		return null;
+		return storedSettings;
 	}
 	async saveData() {
 		/* no persistence in tests */
@@ -65,14 +89,19 @@ class PluginSettingTab {
 	}
 }
 
+/** Stand-in for Obsidian's Setting row; it records the rendered name/description. */
 class Setting {
-	constructor() {
-		this.handlers = {};
+	constructor(containerEl) {
+		this.settingEl = containerEl.createDiv({ cls: "setting-item" });
+		this.nameEl = this.settingEl.createDiv({ cls: "setting-item-name" });
+		this.descEl = this.settingEl.createDiv({ cls: "setting-item-description" });
 	}
-	setName() {
+	setName(name) {
+		this.nameEl.textContent = name;
 		return this;
 	}
-	setDesc() {
+	setDesc(description) {
+		this.descEl.textContent = description;
 		return this;
 	}
 	setLimits() {
@@ -167,4 +196,35 @@ test("the registered post processor mirrors reading view math", async () => {
 	// styles.css; assert the classes that carry them were applied.
 	assert.ok(inline.classList.contains("math-mirror-inline"));
 	assert.ok(block.classList.contains("math-mirror-block"));
+});
+
+test("the settings tab renders both options and the usage help", async () => {
+	const plugin = new PluginClass({ workspace: { onLayoutReady() {} } }, { id: "mirror", version: "0.1.0" });
+	await plugin.onload();
+
+	const tab = registrations.settingsTabs.at(-1);
+	assert.ok(tab, "a settings tab was registered");
+	tab.display();
+
+	const text = tab.containerEl.textContent;
+	assert.match(text, /Mirror in Live Preview/);
+	assert.match(text, /Debug logging/);
+	assert.match(text, /\\mirrorh\{/);
+	assert.match(text, /\\mirrorv\{/);
+	assert.match(text, /\\mirrorhv\{/);
+	// The help must not resurrect the old "whole formula only" restriction.
+	assert.doesNotMatch(text, /entire formula/);
+	assert.equal(tab.containerEl.querySelectorAll("li").length >= 4, true);
+});
+
+test("settings survive a data.json written by an older version", async () => {
+	storedSettings = { livePreview: false, animationMs: 100, debug: true, unknown: "x" };
+	try {
+		const plugin = new PluginClass({ workspace: { onLayoutReady() {} } }, { id: "mirror", version: "0.1.0" });
+		await plugin.onload();
+
+		assert.deepEqual({ ...plugin.settings }, { livePreview: false, debug: true });
+	} finally {
+		storedSettings = null;
+	}
 });

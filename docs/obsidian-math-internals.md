@@ -132,6 +132,41 @@ All measured in Chromium with Obsidian's own `tex-chtml-full.js`:
 * Reflections on *different* elements (the interesting case, `$\mirrorh{x} + \mirrorv{y}$`)
   compose exactly like nested transforms.
 
+## 4c. Undefined-macro output (what the rescue pass reads)
+
+Anything that calls `renderMath` on TeX that still contains the macro gets MathJax's
+`noundefined` rendering, captured in Chromium from Obsidian's bundle:
+
+```html
+<mjx-mtext class="mjx-n" style="color: red;">
+  <mjx-c class="mjx-c5C"></mjx-c><mjx-c class="mjx-c6D"></mjx-c>… <!-- "\mirrorh" -->
+</mjx-mtext>
+<mjx-texatom texclass="ORD">…the braced argument…</mjx-texatom>
+```
+
+* **CHTML output has no text content**: each character is an `<mjx-c class="mjx-cXX">`
+  glyph drawn by CSS, so the macro name has to be decoded from those class names
+  (`mjx-c5C` -> `\`, `mjx-c6D` -> `m`, …, i.e. hex code points).
+* The **braced argument is always the next element sibling**, and it is always an
+  `mjx-texatom` - checked for `{x}`, `{a+b}`, `{\frac{a}{b}}`, `{\sqrt{x}}`,
+  `{\left( x \right)}`, `{\begin{cases}…\end{cases}}` and partial positions.
+* When a **script attaches to the argument** (`\mirrorh{\mathcal{f}}_x`,
+  `\mirrorh{x}^2`, `\mirrorh{x}_i^j`, `\mirrorh{\sum}_i`) the group is not the
+  sibling itself but its *base*: the sibling is `mjx-msub` / `mjx-msup` /
+  `mjx-msubsup` / `mjx-munder` / `mjx-mover` / `mjx-munderover` /
+  `mjx-mmultiscripts` and the group is that element's first child. The rescue
+  descends through exactly those wrappers and mirrors the group, so the script
+  stays where it belongs instead of being reflected with the base. This is why
+  `$\mirrorh{\mathcal{f}}_x$` used to keep its red text.
+* That makes the two controls safe: `\mirrorh x` (no braces) leaves an `mjx-mi`
+  sibling, and even `\mirrorh x^2` (script on a bare symbol) has no group inside
+  its `mjx-msup` - while a bare `\mirrorh` has no sibling at all, and any other
+  undefined macro decodes to a different name. None of them are touched.
+* Nested wrappers produce one such pair per macro, so each group gets its own mirror
+  class and the reflections compose (two nested `\mirrorh` cancel out).
+* A stray operator spacing (`space="3"`) that sat on the error node is moved onto the
+  argument so the formula keeps its spacing.
+
 ## 5. Useful public API (all present in `obsidian.d.ts`)
 
 | API | Notes |

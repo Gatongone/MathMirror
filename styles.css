@@ -32,15 +32,13 @@
 }
 
 /*
- * `transform-origin: center` is the default; it is spelled out because it is
- * what makes the reflection symmetric around the formula instead of its corner.
- * The transition is opt-in through --math-mirror-duration, which the plugin sets
- * from its settings (0ms by default).
+ * `transform-origin: center` is the default; it is spelled out because it is what
+ * makes the reflection symmetric around the formula instead of around a corner,
+ * even if a theme sets a different origin on math elements.
  */
 .math-mirror,
 [class*="mjx-mirror-"] {
 	transform-origin: center center;
-	transition: transform var(--math-mirror-duration, 0ms) ease-out;
 }
 
 .math-mirror-h,

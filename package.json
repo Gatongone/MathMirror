@@ -7,7 +7,7 @@
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
-		"test": "node esbuild.config.mjs test && node --test tests/mirror.test.mjs tests/math-dom.test.mjs tests/live-preview.test.mjs tests/plugin.test.mjs",
+		"test": "node esbuild.config.mjs test && node --test tests/mirror.test.mjs tests/math-dom.test.mjs tests/live-preview.test.mjs tests/rescue.test.mjs tests/plugin.test.mjs",
 		"deploy": "node scripts/deploy.mjs"
 	},
 	"keywords": [

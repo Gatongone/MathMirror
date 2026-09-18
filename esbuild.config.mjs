@@ -19,7 +19,7 @@ const mode = process.argv[2] ?? "dev";
 
 if (mode === "test") {
 	await esbuild.build({
-		entryPoints: ["src/mirror.ts", "src/math-dom.ts", "src/live-preview.ts"],
+		entryPoints: ["src/mirror.ts", "src/math-dom.ts", "src/live-preview.ts", "src/rescue.ts"],
 		outdir: "tests/.build",
 		bundle: true,
 		format: "esm",
