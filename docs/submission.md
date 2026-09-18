@@ -20,6 +20,19 @@ steps left to do. Requirements are taken from the official docs:
 | `isDesktopOnly` | `false` | No Node.js or Electron API is used at runtime. |
 | `fundingUrl` | absent | Only allowed when donations are accepted. |
 
+## Status
+
+- **Release `1.0.0` is published** with `main.js`, `manifest.json` and `styles.css`
+  attached; the release's `main.js` is byte-identical to the tested local build.
+- The Release workflow ran green end to end (install, tag check, build, 62 tests,
+  attestation, draft release).
+- Repository workflow permissions were switched from *read* to **read and write**
+  so the workflow can create releases. To revert:
+  `gh api -X PUT repos/Gatongone/MathMirror/actions/permissions/workflow -f default_workflow_permissions=read`.
+- **Remaining: Step 2 below**, submitting through <https://community.obsidian.md>
+  (needs the author's Obsidian account).
+
+
 ## Required files
 
 | File | Status |
