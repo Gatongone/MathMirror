@@ -1,0 +1,63 @@
+/* ==========================================================================
+   Math Mirror — reflection of LaTeX formulas
+   ==========================================================================
+
+   Two kinds of elements carry a reflection:
+
+   .math-mirror-*            the `.math` element itself, used when a macro wraps
+                             a whole formula (Reading view and Live Preview).
+
+   .mjx-mirror-*             elements MathJax emits for `\class{mjx-mirror-…}{…}`,
+                             used when a macro covers only part of a formula, e.g.
+                             `$\mirrorh{x} + y$`. Those are MathJax's own wrapper
+                             elements (`mjx-mrow`, `mjx-mfrac`, …), which its
+                             stylesheet already makes `display: inline-block`, so
+                             a transform applies without extra rules. The class
+                             name has to start with `mjx-`: MathJax's Safe
+                             extension filters every other class out.
+   ========================================================================== */
+
+/*
+ * A transform only applies to a transformable box (block / inline-block / …),
+ * never to a plain inline box, and inline math is a plain `span.math`. The
+ * `display` is therefore part of the mechanism, not cosmetics - hence !important,
+ * so a theme styling `.math` cannot silently disable the reflection.
+ */
+.math-mirror-inline {
+	display: inline-block !important;
+}
+
+.math-mirror-block {
+	display: block !important;
+}
+
+/*
+ * `transform-origin: center` is the default; it is spelled out because it is
+ * what makes the reflection symmetric around the formula instead of its corner.
+ * The transition is opt-in through --math-mirror-duration, which the plugin sets
+ * from its settings (0ms by default).
+ */
+.math-mirror,
+[class*="mjx-mirror-"] {
+	transform-origin: center center;
+	transition: transform var(--math-mirror-duration, 0ms) ease-out;
+}
+
+.math-mirror-h,
+.mjx-mirror-h {
+	transform: scaleX(-1);
+}
+
+.math-mirror-v,
+.mjx-mirror-v {
+	transform: scaleY(-1);
+}
+
+/* Both axes at once, whether they arrive as one class or as two nested ones that
+   MathJax attached to the same element. */
+.math-mirror-h.math-mirror-v,
+.mjx-mirror-h.mjx-mirror-v,
+.math-mirror-hv,
+.mjx-mirror-hv {
+	transform: scale(-1, -1);
+}

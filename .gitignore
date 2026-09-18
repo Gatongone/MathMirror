@@ -1,0 +1,18 @@
+# Obsidian
+data.json
+workspace.json
+workspace-mobile.json
+.hotreload
+
+# Build output
+main.js
+*.js.map
+
+# Dependencies / tooling
+node_modules/
+tests/.build/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+*.log

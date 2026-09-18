@@ -1,0 +1,9 @@
+{
+	"id": "mirror",
+	"name": "Math Mirror",
+	"version": "0.1.0",
+	"minAppVersion": "1.4.0",
+	"description": "Mirror LaTeX formulas: \\mirrorh{...} flips a formula horizontally (left/right) and \\mirrorv{...} flips it vertically (up/down).",
+	"author": "Gatongone",
+	"isDesktopOnly": false
+}
