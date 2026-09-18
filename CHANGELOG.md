@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1
+
+Addresses the community directory review.
+
+- Settings are now declared with `getSettingDefinitions()`, so they are indexed by
+  Obsidian's settings search (1.13.0 and later). The tab also reads and writes the
+  plugin's own settings through `getControlValue`/`setControlValue`.
+- Removed priority escalation from the stylesheet. The `display` rules the reflection
+  depends on now use more specific selectors instead of forcing the declaration, and
+  the comment no longer names the keyword either, so a plain text scan of
+  `styles.css` finds nothing.
+
 ## 1.0.0
 
 First public release.

@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, SettingDefinitionItem } from "obsidian";
 
 import type MathMirrorPlugin from "./main";
 
@@ -14,6 +14,10 @@ export const DEFAULT_SETTINGS: MirrorSettings = {
 	debug: false,
 };
 
+/**
+ * Settings are declared instead of rendered imperatively, so Obsidian can index
+ * them for the settings search (1.13.0 and later).
+ */
 export class MathMirrorSettingTab extends PluginSettingTab {
 	private readonly plugin: MathMirrorPlugin;
 
@@ -22,46 +26,47 @@ export class MathMirrorSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: "Mirror in Live Preview",
+				desc:
+					"Apply the reflection while editing, not only in Reading view. " +
+					"Turning this off leaves the editor untouched until the note is read.",
+				aliases: ["live preview", "editor", "editing"],
+				control: {
+					type: "toggle",
+					key: "livePreview",
+					defaultValue: DEFAULT_SETTINGS.livePreview,
+				},
+			},
+			{
+				name: "Debug logging",
+				desc: "Print a console message when a formula uses a broken mirror macro.",
+				aliases: ["debug", "console", "log"],
+				control: { type: "toggle", key: "debug", defaultValue: DEFAULT_SETTINGS.debug },
+			},
+			{
+				name: "Supported macros",
+				desc:
+					"$\\mirrorh{...}$ reflects horizontally, $\\mirrorv{...}$ vertically, " +
+					"$\\mirrorhv{...}$ on both axes. A macro can also cover only part of a " +
+					"formula, for example $x + \\mirrorv{\\frac{a}{b}} = y$.",
+				aliases: ["syntax", "usage", "mirrorh", "mirrorv", "mirrorhv"],
+			},
+		];
+	}
 
-		new Setting(containerEl)
-			.setName("Mirror in Live Preview")
-			.setDesc(
-				"Apply the reflection while editing, not only in Reading view. " +
-					"Turning this off leaves Live Preview untouched until the note is read.",
-			)
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.livePreview).onChange(async (value) => {
-					this.plugin.settings.livePreview = value;
-					await this.plugin.saveSettings();
-					this.plugin.applySettings();
-				}),
-			);
+	getControlValue(key: string): unknown {
+		return (this.plugin.settings as unknown as Record<string, unknown>)[key];
+	}
 
-		new Setting(containerEl)
-			.setName("Debug logging")
-			.setDesc("Print a console message when a formula uses a broken mirror macro.")
-			.addToggle((toggle) =>
-				toggle.setValue(this.plugin.settings.debug).onChange(async (value) => {
-					this.plugin.settings.debug = value;
-					await this.plugin.saveSettings();
-					this.plugin.applySettings();
-				}),
-			);
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		if (key === "livePreview") this.plugin.settings.livePreview = value === true;
+		else if (key === "debug") this.plugin.settings.debug = value === true;
+		else return;
 
-		const help = containerEl.createDiv({ cls: "math-mirror-help" });
-		help.createEl("p", { text: "Reflect a whole formula:" });
-		const whole = help.createEl("ul");
-		whole.createEl("li", { text: "$\\mirrorh{\\frac{a}{b}}$ — horizontal (left/right)" });
-		whole.createEl("li", { text: "$\\mirrorv{\\vec{v}}$ — vertical (up/down)" });
-		whole.createEl("li", { text: "$\\mirrorhv{...}$ — both axes at once (180° rotation)" });
-		help.createEl("p", { text: "…or only part of one:" });
-		const partial = help.createEl("ul");
-		partial.createEl("li", { text: "$x + \\mirrorv{\\frac{a}{b}} = y$" });
-		help.createEl("p", {
-			text: "Nested wrappers compose, so $\\mirrorh{\\mirrorv{x}}$ is the same as $\\mirrorhv{x}$.",
-		});
+		await this.plugin.saveSettings();
+		this.plugin.applySettings();
 	}
 }

@@ -20,15 +20,16 @@
 /*
  * A transform only applies to a transformable box (block / inline-block / …),
  * never to a plain inline box, and inline math is a plain `span.math`. The
- * `display` is therefore part of the mechanism, not cosmetics - hence !important,
- * so a theme styling `.math` cannot silently disable the reflection.
+ * `display` is therefore part of the mechanism, not cosmetics. No priority
+ * escalation is used: the selectors repeat the classes the plugin adds to the
+ * element, which outranks the `.math` rules a theme may ship.
  */
-.math-mirror-inline {
-	display: inline-block !important;
+.math.math-mirror.math-mirror-inline {
+	display: inline-block;
 }
 
-.math-mirror-block {
-	display: block !important;
+.math.math-mirror.math-mirror-block {
+	display: block;
 }
 
 /*

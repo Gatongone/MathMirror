@@ -28,28 +28,6 @@ globalThis.getComputedStyle = window.getComputedStyle.bind(window);
 globalThis.requestAnimationFrame = window.requestAnimationFrame.bind(window);
 globalThis.cancelAnimationFrame = window.cancelAnimationFrame.bind(window);
 
-// Obsidian's DOM helpers, which the settings tab uses.
-window.HTMLElement.prototype.empty = function () {
-	while (this.firstChild) this.removeChild(this.firstChild);
-	return this;
-};
-window.HTMLElement.prototype.createDiv = function (options) {
-	const element = this.ownerDocument.createElement("div");
-	if (options?.cls) element.className = options.cls;
-	this.appendChild(element);
-	return element;
-};
-window.HTMLElement.prototype.createEl = function (tag, options) {
-	const element = this.ownerDocument.createElement(tag);
-	if (typeof options === "string") element.className = options;
-	else if (options) {
-		if (options.cls) element.className = options.cls;
-		if (options.text) element.textContent = options.text;
-	}
-	this.appendChild(element);
-	return element;
-};
-
 /* ---------------------------------------------------------------- obsidian mock */
 
 const registrations = { postProcessors: [], editorExtensions: [], settingsTabs: [], cleanups: [] };
@@ -89,42 +67,9 @@ class PluginSettingTab {
 	}
 }
 
-/** Stand-in for Obsidian's Setting row; it records the rendered name/description. */
-class Setting {
-	constructor(containerEl) {
-		this.settingEl = containerEl.createDiv({ cls: "setting-item" });
-		this.nameEl = this.settingEl.createDiv({ cls: "setting-item-name" });
-		this.descEl = this.settingEl.createDiv({ cls: "setting-item-description" });
-	}
-	setName(name) {
-		this.nameEl.textContent = name;
-		return this;
-	}
-	setDesc(description) {
-		this.descEl.textContent = description;
-		return this;
-	}
-	setLimits() {
-		return this;
-	}
-	setDynamicTooltip() {
-		return this;
-	}
-	setValue() {
-		return this;
-	}
-	addToggle() {
-		return this;
-	}
-	addSlider() {
-		return this;
-	}
-}
-
 const obsidianMock = {
 	Plugin,
 	PluginSettingTab,
-	Setting,
 	renderMath: (latex, display) => {
 		const container = window.document.createElement("mjx-container");
 		if (display) container.setAttribute("display", "true");
@@ -198,23 +143,57 @@ test("the registered post processor mirrors reading view math", async () => {
 	assert.ok(block.classList.contains("math-mirror-block"));
 });
 
-test("the settings tab renders both options and the usage help", async () => {
+test("the settings tab declares its settings for the settings search", async () => {
+	storedSettings = null;
 	const plugin = new PluginClass({ workspace: { onLayoutReady() {} } }, { id: "mirror", version: "0.1.0" });
 	await plugin.onload();
 
 	const tab = registrations.settingsTabs.at(-1);
 	assert.ok(tab, "a settings tab was registered");
-	tab.display();
+	assert.equal(typeof tab.getSettingDefinitions, "function", "declarative settings API implemented");
 
-	const text = tab.containerEl.textContent;
-	assert.match(text, /Mirror in Live Preview/);
-	assert.match(text, /Debug logging/);
-	assert.match(text, /\\mirrorh\{/);
-	assert.match(text, /\\mirrorv\{/);
-	assert.match(text, /\\mirrorhv\{/);
-	// The help must not resurrect the old "whole formula only" restriction.
-	assert.doesNotMatch(text, /entire formula/);
-	assert.equal(tab.containerEl.querySelectorAll("li").length >= 4, true);
+	const definitions = tab.getSettingDefinitions();
+	const controls = definitions.filter((item) => item.control);
+	assert.deepEqual(
+		controls.map((item) => [item.name, item.control.type, item.control.key]),
+		[
+			["Mirror in Live Preview", "toggle", "livePreview"],
+			["Debug logging", "toggle", "debug"],
+		],
+	);
+	assert.deepEqual(
+		controls.map((item) => item.control.defaultValue),
+		[true, false],
+	);
+	for (const item of definitions) {
+		assert.ok(item.name, "every definition has a name");
+		assert.ok(item.desc, `${item.name} has a description`);
+	}
+
+	// The usage row must not resurrect the old "whole formula only" restriction.
+	const usage = definitions.find((item) => /Supported macros/.test(item.name));
+	assert.match(String(usage.desc), /mirrorh/);
+	assert.match(String(usage.desc), /only part of a formula/);
+	assert.doesNotMatch(String(usage.desc), /entire formula/);
+});
+
+test("setting values are read from and written to the plugin settings", async () => {
+	storedSettings = null;
+	const plugin = new PluginClass({ workspace: { onLayoutReady() {} } }, { id: "mirror", version: "0.1.0" });
+	await plugin.onload();
+	const tab = registrations.settingsTabs.at(-1);
+
+	assert.equal(tab.getControlValue("livePreview"), true);
+	assert.equal(tab.getControlValue("debug"), false);
+
+	await tab.setControlValue("livePreview", false);
+	await tab.setControlValue("debug", true);
+	assert.deepEqual({ ...plugin.settings }, { livePreview: false, debug: true });
+	assert.equal(tab.getControlValue("livePreview"), false, "round trip");
+
+	// Unknown keys are ignored instead of growing data.json.
+	await tab.setControlValue("animationMs", 100);
+	assert.deepEqual(Object.keys({ ...plugin.settings }).sort(), ["debug", "livePreview"]);
 });
 
 test("settings survive a data.json written by an older version", async () => {

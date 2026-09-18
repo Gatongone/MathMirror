@@ -1,7 +1,7 @@
 {
 	"id": "math-mirror",
 	"name": "Math Mirror",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.13.7",
 	"description": "Flip LaTeX formulas in your notes horizontally, vertically, or both, while keeping them real typeset math that stays selectable and searchable.",
 	"author": "Gatongone",

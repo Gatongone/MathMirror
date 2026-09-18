@@ -29,6 +29,14 @@ steps left to do. Requirements are taken from the official docs:
 - Repository workflow permissions were switched from *read* to **read and write**
   so the workflow can create releases. To revert:
   `gh api -X PUT repos/Gatongone/MathMirror/actions/permissions/workflow -f default_workflow_permissions=read`.
+- **Review feedback from 1.0.0, fixed in `1.0.1`:**
+  - `PluginSettingTab` did not implement `getSettingDefinitions()`, so the settings
+    were missing from Obsidian's settings search. The tab is now declarative (and
+    still persists through `getControlValue`/`setControlValue`).
+  - Priority escalation in the stylesheet. The two `display` rules now use
+    `.math.math-mirror.math-mirror-*` instead, which outranks the `.math` rules a
+    theme ships without escalating; verified in a browser with a competing theme
+    rule loaded *after* the plugin stylesheet.
 - **Remaining: Step 2 below**, submitting through <https://community.obsidian.md>
   (needs the author's Obsidian account).
 
@@ -60,6 +68,9 @@ steps left to do. Requirements are taken from the official docs:
       no `workspace.activeLeaf`, no default hotkeys, no `var`, no regex
       lookbehind, no hardcoded styling in TypeScript (verified by grep).
 - [x] Console output only behind the opt-in "Debug logging" setting.
+- [x] Settings declared through `getSettingDefinitions()` so the settings search
+      indexes them (1.13.0 and later).
+- [x] No priority escalation in the stylesheet; specificity is used instead.
 - [x] Resources cleaned up on unload (`register()` for the observer).
 - [x] Policies: no ads, no telemetry, no account, no network access at all — the
       plugin only reads the DOM and the editor, and uses the MathJax that Obsidian
