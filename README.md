@@ -4,9 +4,8 @@ Mirror LaTeX formulas in Obsidian: `$\mirrorh{...}$` flips a formula left/right,
 `$\mirrorv{...}$` flips it upside down.
 
 ```markdown
-$\mirrorh{\frac{a}{b}}$                     whole formula, horizontal reflection
-$\mirrorv{\vec{v}}$                         whole formula, vertical reflection
-$$\mirrorh{\begin{cases}a&b\\c&d\end{cases}}$$
+$\mirrorh{\frac{a}{b}}$                      whole formula, horizontal reflection
+$\mirrorv{\vec{v}}$                          whole formula, vertical reflection
 $\mirrorhv{\int_0^1 f(x)\,dx}$               both axes (180° rotation)
 $\mirrorh{\mirrorv{x}}$                      nesting composes, same as \mirrorhv
 $x + \mirrorv{\frac{a}{b}} = y$              only the fraction is flipped
@@ -116,30 +115,6 @@ Mirror in Live Preview · Debug logging.
 * The rescue pass understands MathJax's undefined-macro rendering as Obsidian
   1.13.7 (MathJax 3.2.2) produces it. If a future version changes that markup, the
   rescue pass stops working - all other paths are unaffected.
-
-## Development
-
-`npm run dev` (watch) · `npm run build` (type check + production bundle) ·
-`npm test` (62 unit and integration tests, including a real CodeMirror 6 editor in
-jsdom) · `npm run deploy` (copy the built plugin into a vault).
-
-`main.js` and `styles.css` are build artifacts and are not committed; they are
-attached to each release.
-
-## Releases
-
-`.github/workflows/release.yml` builds and tests the plugin on every tag, then
-opens a draft release with the three files Obsidian downloads. Push a tag that
-matches `manifest.json`:
-
-```powershell
-git tag -a 1.0.0 -m "1.0.0"
-git push origin 1.0.0
-```
-
-Review the draft release, add the notes from [`CHANGELOG.md`](CHANGELOG.md) and
-publish it. See [`docs/submission.md`](docs/submission.md) for the community
-directory checklist.
 
 ## License
 
